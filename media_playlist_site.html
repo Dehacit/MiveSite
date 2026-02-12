@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Media Playlist Site</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <style>
+    :root {
+        --primary: #1e90ff;
+        --accent: #ffb300;
+        --bg: #171c24;
+        --panel: #222938;
+        --tab-hover: #202533;
+        --border: #273143;
+        --card: #232e43;
+        --shadow: 0 5px 29px #050a1a80;
+        --radius: 1.2em;
+    }
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: #fff;
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        font-size: 16px;
+    }
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        letter-spacing: 0.01em;
+        box-sizing: border-box;
+    }
+    header {
+        background: var(--panel);
+        padding: 2rem 1.5rem 1rem 1.5rem;
+        text-align: center;
+        box-shadow: var(--shadow);
+    }
+    header h1 {
+        font-size: 2.8em;
+        letter-spacing: 0.06em;
+        color: var(--primary);
+        margin-bottom: 0.1em;
+        font-weight: 700;
+    }
+    header small {
+        color: #aaa;
+        font-size: 1em;
+        letter-spacing: .09em;
+    }
+    .tabs {
+        display: flex;
+        justify-content: center;
+        margin: 2.2rem 0 .5rem 0;
+        border-bottom: 1.5px solid var(--border);
+    }
+    .tab {
+        appearance: none;
+        background: none;
+        border: none;
+        color: #bbb;
+        padding: 0.9em 2.5em 0.85em 2.5em;
+        font-weight: 500;
+        font-size: 1.2em;
+        cursor: pointer;
+        border-top-left-radius: var(--radius);
+        border-top-right-radius: var(--radius);
+        margin: 0 0.2em;
+        outline: none;
+        transition: color .17s, background .14s;
+        position: relative;
+        top:2px;
+    }
+    .tab.selected {
+        color: var(--primary);
+        background: var(--card);
+        font-weight: 700;
+        z-index:2;
+    }
+    .main-content {
+        background: var(--panel);
+        max-width: 1000px;
+        margin: 0.7em auto 2.5em auto;
+        border-radius: var(--radius);
+        padding: 2.4em 2.3em 3em 2.3em;
+        min-height: 650px;
+        box-shadow: var(--shadow);
+        position: relative;
+    }
+    @media (max-width:600px){
+        .main-content{padding:1em .2em;}
+        .tabs .tab{padding:0.7em 1em;}
+    }
+
+    .section-area{
+        display:none;
+        animation: fadeinarea 0.5s;
+    }
+    .section-area.active{
+        display:block;
+    }
+    @keyframes fadeinarea{
+        0%{opacity:0;}
+        100%{opacity:1;}
+    }
+
+    .upload-panel, .playlist-panel, .auto-sort-panel{
+        margin-bottom:1.5em;
+        display: flex;
+        flex-direction: row;
+        align-items:center;
+        gap:1em;
+        flex-wrap: wrap;
+    }
+    .upload-panel input[type="file"], .upload-panel input[type="text"]{
+        background:var(--card);
+        border:1px solid var(--border);
+        color:#fafafa;
+        font-size:1em;
+        border-radius:0.5em;
+        padding: 0.5em 1em;
+        margin-right: 1.1em;
+    }
+    .upload-panel input[type="file"]{
+        padding:.5em .7em;
+        margin-right:.5em;
+    }
+    .upload-panel button, .playlist-panel button, .auto-sort-panel button{
+        background: var(--primary);
+        color: #fff;
+        font-weight: 700;
+        font-size:1.05em;
+        border:none;
+        outline:none;
+        border-radius:.5em;
+        cursor:pointer;
+        padding:.53em 1.4em;
+        transition: background .16s;
+    }
+    .upload-panel button:hover, .playlist-panel button:hover, .auto-sort-panel button:hover{
+        background: var(--accent);
+        color: var(--bg);
+    }
+    .playlist-panel input, .playlist-panel select{
+        padding: 0.45em 1em;
+        border-radius:0.5em;
+        border:1px solid var(--border);
+        margin-right:0.7em;
+        background: var(--card);
+        color:#fff;
+        font-size:1em;
+    }
+    .playlist-panel select{
+        color: #fff;
+        width:155px;
+        background: var(--card);
+    }
+    .media-list-area{
+        display:flex;
+        flex-direction: row;
+        gap:1.7em;
+        justify-content: flex-start;
+        flex-wrap:wrap;
+        margin-top:2.5em;
+        margin-bottom:2em;
+    }
+    @media (max-width:930px){
+        .media-list-area{flex-direction:column;}
+    }
+    .media-list, .playlist-list{
+        padding:0;
+        margin:0;
+        list-style:none;
+        min-width:310px;
+        flex: 1 1 320px;
+    }
+    .media-card, .playlist-card{
+        background: var(--card);
+        margin-bottom: 1.5em;
+        border-radius: 1.1em;
+        box-shadow: 0 2px 20px #0a183055;
+        padding: 1.1em 1.2em 1.2em 1.2em;
+        position: relative;
+        display: flex;
+        flex-direction:column;
+        min-height: 95px;
+        overflow:hidden;
+        animation: fadeincard 0.45s;
+        transition: box-shadow .12s;
+    }
+    .media-card:hover, .playlist-card:hover{
+        box-shadow: 0 9px 45px #30499055;
+    }
+    @keyframes fadeincard{
+        0%{transform:translateY(30%);opacity:0;}
+        100%{transform:translateY(0);opacity:1;}
+    }
+    .media-title{
+        color:var(--accent);
+        font-weight:700;
+        font-size:1.15em;
+        letter-spacing:.01em;
+    }
+    .media-controls{
+        margin-top:0.7em;
+        display: flex;
+        flex-direction: row;
+        gap:0.7em;
+        flex-wrap:wrap;
+    }
+    .media-controls button, .playlist-controls button{
+        appearance:none;
+        border: none;
+        background:var(--primary);
+        color:#fff;
+        border-radius:0.5em;
+        padding:0.22em 1.1em;
+        font-size: 1em;
+        font-weight: 550;
+        margin-right:0.2em;
+        cursor:pointer;
+        outline:none;
+        transition: background .13s;
+    }
+    .media-controls button:hover, .playlist-controls button:hover{
+        background:var(--accent);
+        color: var(--bg);
+    }
+    .playlist-controls{
+        display:flex;
+        gap:0.4em;
+        margin-top:0.4em;
+        flex-wrap:wrap;
+    }
+    .playlist-items{
+        list-style:none;
+        margin:0.6em 0 0 0;
+        padding:0;
+        color:#ececec;
+        background:none;
+        display:flex;
+        flex-direction:column;
+    }
+    .playlist-item-link{
+        color:var(--accent);
+        cursor:pointer;
+        text-decoration:underline;
+        background:none;
+        border:none;
+        font-weight:600;
+        margin-right:0.8em;
+        font-size:1em;
+    }
+    .playlist-item-link:hover{
+        color:var(--primary);
+    }
+    .remove-btn, .remove-pl-btn{
+        background:#ff3f57;
+        color:#fff;
+        border:none;
+        padding:0.2em 0.8em;
+        border-radius:0.5em;
+        cursor:pointer;
+        font-size:0.95em;
+        margin-left:0.7em;
+        transition: background .17s;
+    }
+    .remove-btn:hover, .remove-pl-btn:hover{
+        background:#c30b34;
+    }
+    .playlist-card-title{
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 1.09em;
+        margin-bottom: 0.12em;
+        margin-top:0.25em;
+        letter-spacing:0.04em;
+    }
+    .auto-sort-panel{
+        margin:2em 0 2em 0;
+        display:flex;
+        align-items:center;
+        gap:1.4em;
+    }
+    .auto-sort-panel button{
+        margin-right:.5em;
+        margin-top:.3em;
+    }
+    .media-player, .music-player{
+        margin: 1.1em 0 0 0;
+        width: 100%;
+        background: #111b27;
+        border-radius:0.7em;
+        box-shadow:0 2px 19px #0005;
+        padding:0.8em;
+        display:flex;justify-content:center;align-items:center;
+    }
+    video{
+        min-height:350px;
+        background:#111b27;
+        width: 97%;
+        border-radius:0.7em;
+        box-shadow:0 2px 19px #0005;
+        outline: none;
+        margin: 0.2em auto;
+        display:block;
+        max-width:99%;
+    }
+    audio{
+        width:92%;
+        outline: none;
+        background: #1e2533;
+        border-radius: 5px;
+        margin: 0.1em;
+    }
+    @media (max-width:650px){
+        .media-player, video{min-height:210px;}
+        video{min-height:130px;}
+    }
+    /* Custom Scrollbar (modern) */
+    ::-webkit-scrollbar{width:10px;background:#13151b;}
+    ::-webkit-scrollbar-thumb{background:#212223;border-radius:8px;}
+    ::-webkit-scrollbar-thumb:hover{background:#2e313d;}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Media Playlist</h1>
+    <small>Upload videos/music, create playlists, enjoy!</small>
+</header>
+<section class="tabs">
+    <button id="tab-movies" class="tab selected">Movies &nbsp;🎬</button>
+    <button id="tab-music" class="tab">Music &nbsp;🎵</button>
+</section>
+<main class="main-content">
+    <!-- MOVIES -->
+    <section id="area-movies" class="section-area active">
+        <section class="upload-panel">
+            <input type="file" id="movie-upload" accept="video/mp4"/>
+            <input type="text" id="movie-title" placeholder="Movie Title (optional)">
+            <button id="add-movie">Add Movie</button>
+        </section>
+        <section class="playlist-panel">
+            <input type="text" id="movie-pl-name" placeholder="New playlist name">
+            <button id="add-movie-pl">Create Playlist</button>
+            <select id="select-movie-pl"></select>
+            <button id="add-movie-to-pl">Add Movie Below to Playlist</button>
+        </section>
+        <section class="auto-sort-panel">
+            <button id="auto-sort-movies">Auto-sort Playlists by Title Words</button>
+        </section>
+        <div class="media-list-area">
+            <ul id="movie-list" class="media-list"></ul>
+            <ul id="movie-playlists" class="playlist-list"></ul>
+        </div>
+    </section>
+
+    <!-- MUSIC -->
+    <section id="area-music" class="section-area">
+        <section class="upload-panel">
+            <input type="file" id="music-upload" accept="audio/mp3,audio/wav,audio/ogg"/>
+            <input type="text" id="music-title" placeholder="Music Title (optional)">
+            <button id="add-music">Add Song</button>
+        </section>
+        <section class="playlist-panel">
+            <input type="text" id="music-pl-name" placeholder="New playlist name">
+            <button id="add-music-pl">Create Playlist</button>
+            <select id="select-music-pl"></select>
+            <button id="add-music-to-pl">Add Song Below to Playlist</button>
+        </section>
+        <section class="auto-sort-panel">
+            <button id="auto-sort-music">Auto-sort Playlists by Title Words</button>
+        </section>
+        <div class="media-list-area">
+            <ul id="music-list" class="media-list"></ul>
+            <ul id="music-playlists" class="playlist-list"></ul>
+        </div>
+    </section>
+    <!-- Dynamic modals for video/audio player (mobile) -->
+    <div id="player-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:#000b;z-index:2000;align-items:center;justify-content:center;">
+        <div style="background:var(--panel);box-shadow:var(--shadow);padding:1.1em 1em 1em 1em;border-radius:1.1em;max-width:97vw;max-height:90vh;overflow:auto;position:relative;">
+            <button id="player-modal-close" style="position:absolute;right:1em;top:1em;font-size:2em;background:none;border:none;color:#aaa;cursor:pointer;z-index:10;">
+                &times;
+            </button>
+            <div id="player-modal-content"></div>
+        </div>
+    </div>
+</main>
+<script>
+/*------------- UTIL + STORAGE -----------*/
+function $(id){ return document.getElementById(id); }
+function hyp(x){ return x.replace(/[<>"]/g, ch=>({"<":"&lt;",">":"&gt;",'"':"&quot;"}[ch])); }
+// Movies
+let movies = JSON.parse(localStorage.getItem('MOVIES_MPLAYER')||'[]');
+let moviePlaylists = JSON.parse(localStorage.getItem('MOVIEPLS_MPLAYER')||'{}');
+// Music
+let music = JSON.parse(localStorage.getItem('MUSIC_MPLAYER')||'[]');
+let musicPlaylists = JSON.parse(localStorage.getItem('MUSICPLS_MPLAYER')||'{}');
+function saveAll(){
+    localStorage.setItem('MOVIES_MPLAYER',JSON.stringify(movies));
+    localStorage.setItem('MOVIEPLS_MPLAYER',JSON.stringify(moviePlaylists));
+    localStorage.setItem('MUSIC_MPLAYER',JSON.stringify(music));
+    localStorage.setItem('MUSICPLS_MPLAYER',JSON.stringify(musicPlaylists));
+}
+function shortTitle(str,max=24){
+    return str.length>max?hyp(str.slice(0,max-2))+'…':hyp(str);
+}
+function isValidFile(name, type, tab){
+    if(tab==="movies") return /\.(mp4)$/i.test(name) && type.startsWith("video/");
+    if(tab==="music") return /\.(mp3|wav|ogg)$/i.test(name) && type.startsWith("audio/");
+    return false;
+}
+/*------------- TABS -----------*/
+function showTab(tab){
+    if(tab==='movies'){
+        $('tab-movies').classList.add('selected');
+        $('tab-music').classList.remove('selected');
+        $('area-movies').classList.add('active');
+        $('area-music').classList.remove('active');
+    }else{
+        $('tab-movies').classList.remove('selected');
+        $('tab-music').classList.add('selected');
+        $('area-movies').classList.remove('active');
+        $('area-music').classList.add('active');
+    }
+}
+$('tab-movies').onclick=()=>showTab('movies');
+$('tab-music').onclick=()=>showTab('music');
+
+/*------------- MOVIES -----------*/
+function renderMovies(){
+    let ml=$('movie-list');
+    ml.innerHTML='';
+    if(movies.length===0){
+        ml.innerHTML = '<small style="color:#aaa;padding:.5em;">No movies uploaded yet.</small>';
+        return;
+    }
+    movies.forEach( (movie, idx) => {
+        let li=document.createElement('li');
+        li.className="media-card";
+        li.innerHTML=`
+            <span class="media-title">${shortTitle(movie.title||"Movie "+(idx+1))}</span>
+            <div class="media-controls">
+                <button onclick="playVideo(${idx})">Play</button>
+                <button onclick="promptAddToMoviePL(${idx})">Add to playlist</button>
+                <button class="remove-btn" onclick="deleteMovie(${idx})">Delete</button>
+            </div>
+        `;
+        ml.appendChild(li);
+    });
+}
+function renderMoviePLs(){
+    let ul=$('movie-playlists');
+    ul.innerHTML='';
+    Object.entries(moviePlaylists).forEach( ([name, idxs])=>{
+        let card=document.createElement('li');
+        card.className="playlist-card";
+        card.innerHTML=`
+            <div class="playlist-card-title">${hyp(name)}</div>
+            <div class="playlist-controls">
+                <button onclick="deleteMoviePL('${hyp(name)}')" class="remove-pl-btn">Delete Playlist</button>
+            </div>
+            <ul class="playlist-items" id="moviepl-items-${hyp(name)}"></ul>
+        `;
+        ul.appendChild(card);
+        let itemsul = $('moviepl-items-'+hyp(name));
+        idxs.forEach( idx=>{
+            if(!movies[idx]) return;
+            let li=document.createElement('li');
+            li.innerHTML=`<button class="playlist-item-link" onclick="playVideo(${idx})">${shortTitle(movies[idx].title||'Movie '+(idx+1),30)}</button>
+                <button class="remove-btn" onclick="removeMovieFromPL('${hyp(name)}',${idx})">x</button>`;
+            itemsul.appendChild(li);
+        });
+    });
+}
+window.playVideo=function(idx){
+    // Modal
+    $('player-modal').style.display='flex';
+    $('player-modal-content').innerHTML=
+        `<div class="media-player">
+            <video src="${movies[idx].src}" controls autoplay></video>
+        </div>
+        <div style="margin-top:.8em;text-align:right;font-size:1.1em;color:#ffd674;font-weight:500">${hyp(movies[idx].title)}</div>`;
+};
+window.promptAddToMoviePL=function(idx){
+    // Advanced: handle via dropdown
+    let pls=Object.keys(moviePlaylists||{});
+    let name=prompt("Playlist name to add movie", pls[0]||"");
+    if(!name||!moviePlaylists[name])return;
+    if(!moviePlaylists[name].includes(idx)){
+        moviePlaylists[name].push(idx); saveAll(); renderMoviePLs();
+    }
+};
+window.deleteMovie=function(idx){
+    if(!confirm('Delete this movie?'))return;
+    movies.splice(idx,1);
+    for(let pl in moviePlaylists)
+        moviePlaylists[pl]=moviePlaylists[pl].filter(i=>i!==idx).map(i=>i>idx?i-1:i);
+    saveAll(); renderMovies(); renderMoviePLs();
+};
+window.deleteMoviePL=function(name){
+    if(!confirm('Delete the playlist "'+name+'"?'))return;
+    delete moviePlaylists[name]; saveAll(); renderMoviePLs();
+};
+window.removeMovieFromPL=function(pl,idx){
+    moviePlaylists[pl]=moviePlaylists[pl].filter(i=>i!==idx);
+    saveAll(); renderMoviePLs();
+}
+function updateMoviePLSelect(){
+    let sel=$('select-movie-pl');
+    sel.innerHTML='';
+    Object.keys(moviePlaylists).forEach( pl=>{
+        let o=document.createElement('option');
+        o.value=pl; o.textContent=pl;
+        sel.appendChild(o);
+    });
+}
+/*------------- MOVIE BUTTONS -----------*/
+$('add-movie').onclick = async function(e){
+    let file=$('movie-upload').files[0];
+    if(!file){
+        alert('Upload an MP4 movie file.');
+        return;
+    }
+    if(!isValidFile(file.name,file.type,"movies")){
+        alert("Only MP4 video supported.");
+        return;
+    }
+    let title = $('movie-title').value||file.name.replace(/\.\w+$/,'');
+    let src = URL.createObjectURL(file);
+    movies.push({title, src});
+    saveAll(); $('movie-title').value=''; $('movie-upload').value='';
+    renderMovies(); renderMoviePLs();
+};
+$('add-movie-pl').onclick = function(e){
+    let name = $('movie-pl-name').value.trim();
+    if(!name){
+        alert('Please specify a playlist name');
+        return;
+    }
+    if(moviePlaylists[name]){
+        alert('Playlist name already exists');
+        return;
+    }
+    moviePlaylists[name]=[];
+    saveAll(); $('movie-pl-name').value=''; updateMoviePLSelect(); renderMoviePLs();
+};
+$('add-movie-to-pl').onclick = function(e){
+    let sel=$('select-movie-pl').value;
+    if(!sel)return alert('Make or pick a playlist!');
+    let idx=prompt('Index of movie to add (first movie is 1):');
+    idx=Number(idx)-1;
+    if(isNaN(idx)||idx<0||idx>=movies.length)return alert('Invalid index');
+    if(!moviePlaylists[sel].includes(idx))
+        moviePlaylists[sel].push(idx);
+    saveAll(); renderMoviePLs();
+};
+$('auto-sort-movies').onclick = function(e){
+    const stops=["a","the","of","and","in","to","on","at","an","by","for","is","its","it","as"];
+    let freq={};
+    movies.forEach(({title}, idx)=>{
+        let ws=title.toLocaleLowerCase().replace(/[^a-z0-9 ]/g,'').split(/\s+/)
+            .filter(w=>w&&!stops.includes(w));
+        for(let w of ws){
+            freq[w]=freq[w]||[];
+            freq[w].push(idx);
+        }
+    });
+    let count=0;
+    for(let [w,lst] of Object.entries(freq)){
+        if(lst.length>1){
+            let pl=w[0].toUpperCase()+w.substr(1);
+            moviePlaylists[pl]=[...(moviePlaylists[pl]||[]),...lst.filter(i=>!(moviePlaylists[pl]||[]).includes(i))];
+            count++;
+        }
+    }
+    saveAll(); updateMoviePLSelect(); renderMoviePLs();
+    alert(count?count+' auto playlists updated.':'No new playlists found');
+};
+
+/*------------- MUSIC -----------*/
+function renderMusic(){
+    let ml=$('music-list');
+    ml.innerHTML='';
+    if(music.length===0){
+        ml.innerHTML = '<small style="color:#aaa;padding:.5em;">No music uploaded yet.</small>';
+        return;
+    }
+    music.forEach( (song, idx) => {
+        let li=document.createElement('li');
+        li.className="media-card";
+        li.innerHTML=`
+            <span class="media-title">${shortTitle(song.title||"Song "+(idx+1))}</span>
+            <div class="media-controls">
+                <button onclick="playSong(${idx})">Play</button>
+                <button onclick="promptAddToMusicPL(${idx})">Add to playlist</button>
+                <button class="remove-btn" onclick="deleteSong(${idx})">Delete</button>
+            </div>
+        `;
+        ml.appendChild(li);
+    });
+}
+function renderMusicPLs(){
+    let ul=$('music-playlists');
+    ul.innerHTML='';
+    Object.entries(musicPlaylists).forEach( ([name, idxs])=>{
+        let card=document.createElement('li');
+        card.className="playlist-card";
+        card.innerHTML=`
+            <div class="playlist-card-title">${hyp(name)}</div>
+            <div class="playlist-controls">
+                <button onclick="deleteMusicPL('${hyp(name)}')" class="remove-pl-btn">Delete Playlist</button>
+            </div>
+            <ul class="playlist-items" id="musicpl-items-${hyp(name)}"></ul>
+        `;
+        ul.appendChild(card);
+        let itemsul = $('musicpl-items-'+hyp(name));
+        idxs.forEach( idx=>{
+            if(!music[idx]) return;
+            let li=document.createElement('li');
+            li.innerHTML=`<button class="playlist-item-link" onclick="playSong(${idx})">${shortTitle(music[idx].title||'Song '+(idx+1),30)}</button>
+                <button class="remove-btn" onclick="removeSongFromPL('${hyp(name)}',${idx})">x</button>`;
+            itemsul.appendChild(li);
+        });
+    });
+}
+window.playSong=function(idx){
+    $('player-modal').style.display='flex';
+    $('player-modal-content').innerHTML=
+        `<div class="music-player">
+            <audio src="${music[idx].src}" controls autoplay></audio>
+        </div>
+        <div style="margin-top:.8em;text-align:right;font-size:1.1em;color:#ffd674;font-weight:500">${hyp(music[idx].title)}</div>`;
+};
+window.promptAddToMusicPL=function(idx){
+    let pls=Object.keys(musicPlaylists||{});
+    let name=prompt("Playlist name to add song", pls[0]||"");
+    if(!name||!musicPlaylists[name])return;
+    if(!musicPlaylists[name].includes(idx)){
+        musicPlaylists[name].push(idx); saveAll(); renderMusicPLs();
+    }
+};
+window.deleteSong=function(idx){
+    if(!confirm('Delete this song?'))return;
+    music.splice(idx,1);
+    for(let pl in musicPlaylists)
+        musicPlaylists[pl]=musicPlaylists[pl].filter(i=>i!==idx).map(i=>i>idx?i-1:i);
+    saveAll(); renderMusic(); renderMusicPLs();
+};
+window.deleteMusicPL=function(name){
+    if(!confirm('Delete the playlist "'+name+'"?'))return;
+    delete musicPlaylists[name]; saveAll(); renderMusicPLs();
+};
+window.removeSongFromPL=function(pl,idx){
+    musicPlaylists[pl]=musicPlaylists[pl].filter(i=>i!==idx);
+    saveAll(); renderMusicPLs();
+}
+function updateMusicPLSelect(){
+    let sel=$('select-music-pl');
+    sel.innerHTML='';
+    Object.keys(musicPlaylists).forEach( pl=>{
+        let o=document.createElement('option');
+        o.value=pl; o.textContent=pl;
+        sel.appendChild(o);
+    });
+}
+/*------------- MUSIC BUTTONS -----------*/
+$('add-music').onclick = async function(e){
+    let file=$('music-upload').files[0];
+    if(!file){
+        alert('Upload a music file.');
+        return;
+    }
+    if(!isValidFile(file.name,file.type,"music")){
+        alert("Only mp3, wav, ogg supported.");
+        return;
+    }
+    let title = $('music-title').value||file.name.replace(/\.\w+$/,'');
+    let src = URL.createObjectURL(file);
+    music.push({title, src});
+    saveAll(); $('music-title').value=''; $('music-upload').value='';
+    renderMusic(); renderMusicPLs();
+};
+$('add-music-pl').onclick = function(e){
+    let name = $('music-pl-name').value.trim();
+    if(!name){
+        alert('Please specify a playlist name');
+        return;
+    }
+    if(musicPlaylists[name]){
+        alert('Playlist name already exists');
+        return;
+    }
+    musicPlaylists[name]=[];
+    saveAll(); $('music-pl-name').value=''; updateMusicPLSelect(); renderMusicPLs();
+};
+$('add-music-to-pl').onclick = function(e){
+    let sel=$('select-music-pl').value;
+    if(!sel)return alert('Make or pick a playlist!');
+    let idx=prompt('Index of song to add (first song is 1):');
+    idx=Number(idx)-1;
+    if(isNaN(idx)||idx<0||idx>=music.length)return alert('Invalid index');
+    if(!musicPlaylists[sel].includes(idx))
+        musicPlaylists[sel].push(idx);
+    saveAll(); renderMusicPLs();
+};
+$('auto-sort-music').onclick = function(e){
+    const stops=["a","the","of","and","in","to","on","at","an","by","for","is","its","it","as"];
+    let freq={};
+    music.forEach(({title}, idx)=>{
+        let ws=title.toLocaleLowerCase().replace(/[^a-z0-9 ]/g,'').split(/\s+/)
+            .filter(w=>w&&!stops.includes(w));
+        for(let w of ws){
+            freq[w]=freq[w]||[];
+            freq[w].push(idx);
+        }
+    });
+    let count=0;
+    for(let [w,lst] of Object.entries(freq)){
+        if(lst.length>1){
+            let pl=w[0].toUpperCase()+w.substr(1);
+            musicPlaylists[pl]=[...(musicPlaylists[pl]||[]),...lst.filter(i=>!(musicPlaylists[pl]||[]).includes(i))];
+            count++;
+        }
+    }
+    saveAll(); updateMusicPLSelect(); renderMusicPLs();
+    alert(count?count+' auto playlists updated.':'No new playlists found');
+};
+
+/*--------- player modal --------*/
+$('player-modal-close').onclick = function(){
+    $('player-modal').style.display='none';
+    $('player-modal-content').innerHTML='';
+};
+/*--------- init --------*/
+function initializeUI(){
+    renderMovies(); renderMoviePLs(); updateMoviePLSelect();
+    renderMusic(); renderMusicPLs(); updateMusicPLSelect();
+}
+initializeUI();
+</script>
+</body>
+</html>
